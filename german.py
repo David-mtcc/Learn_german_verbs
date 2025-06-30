@@ -29,15 +29,16 @@ class VerbQuizApp:
         self.verb_label = tk.Label(master, text="", font=("Helvetica", 16))
         self.verb_label.pack(pady=10)
 
-        self.meaning_label = tk.Label(master, text="Meaning:")
-        self.meaning_label.pack()
-        self.meaning_entry = tk.Entry(master)
-        self.meaning_entry.pack()
-
+        # Swapped: Partizip Perfekt input first
         self.partizip_label = tk.Label(master, text="Partizip Perfekt:")
         self.partizip_label.pack()
         self.partizip_entry = tk.Entry(master)
         self.partizip_entry.pack()
+
+        self.meaning_label = tk.Label(master, text="Meaning:")
+        self.meaning_label.pack()
+        self.meaning_entry = tk.Entry(master)
+        self.meaning_entry.pack()
 
         self.feedback_label = tk.Label(master, text="", font=("Helvetica", 12))
         self.feedback_label.pack(pady=10)
