@@ -1,97 +1,95 @@
 import csv
-import tkinter as tk
-from tkinter import messagebox
 import random
+import tkinter as tk
 
 class Verb:
-    def __init__(self, verb, partizip_perfekt, meaning):
-        self.verb = verb
+    def __init__(self, infinitiv, partizip_perfekt, meaning):
+        self.infinitiv = infinitiv
         self.partizip_perfekt = partizip_perfekt
         self.meaning = meaning
+        self.correct_count = 0  # New: count of correct answers
 
-def load_verbs_from_csv(filename):
+def load_verbs_from_csv(filepath):
     verbs = []
-    with open(filename, newline='', encoding='utf-8') as csvfile:
+    with open(filepath, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            verbs.append(Verb(row['verb'], row['partizip_perfekt'], row['meaning']))
+            verbs.append(Verb(row['infinitiv'], row['partizip_perfekt'], row['meaning']))
     return verbs
 
 class VerbQuizApp:
-    def __init__(self, root, verbs):
-        self.root = root
-        self.verbs = verbs
-        random.shuffle(self.verbs)
-        self.index = 0
+    def __init__(self, master, verbs):
+        self.master = master
+        self.all_verbs = verbs
+        self.active_verbs = verbs.copy()
+        self.learned_verbs = []
 
-        self.root.title("German Verb Quiz")
+        self.master.title("German Verb Quiz")
 
-        self.label_verb = tk.Label(root, text="", font=("Arial", 16))
-        self.label_verb.pack(pady=10)
+        self.verb_label = tk.Label(master, text="", font=("Helvetica", 16))
+        self.verb_label.pack(pady=10)
 
-        # Frame for entry fields with labels
-        form_frame = tk.Frame(root)
-        form_frame.pack()
+        self.meaning_label = tk.Label(master, text="Meaning:")
+        self.meaning_label.pack()
+        self.meaning_entry = tk.Entry(master)
+        self.meaning_entry.pack()
 
-        tk.Label(form_frame, text="Partizip Perfekt:").grid(row=0, column=0, sticky="e", padx=5, pady=5)
-        self.entry_partizip = tk.Entry(form_frame, width=30)
-        self.entry_partizip.grid(row=0, column=1, padx=5, pady=5)
+        self.partizip_label = tk.Label(master, text="Partizip Perfekt:")
+        self.partizip_label.pack()
+        self.partizip_entry = tk.Entry(master)
+        self.partizip_entry.pack()
 
-        tk.Label(form_frame, text="Meaning:").grid(row=1, column=0, sticky="e", padx=5, pady=5)
-        self.entry_meaning = tk.Entry(form_frame, width=30)
-        self.entry_meaning.grid(row=1, column=1, padx=5, pady=5)
+        self.feedback_label = tk.Label(master, text="", font=("Helvetica", 12))
+        self.feedback_label.pack(pady=10)
 
-        self.button_submit = tk.Button(root, text="Submit", command=self.check_answer)
-        self.button_submit.pack(pady=5)
+        self.check_button = tk.Button(master, text="Check Answer", command=self.check_answer)
+        self.check_button.pack(pady=5)
 
-        self.feedback = tk.Label(root, text="", fg="blue", justify="left")
-        self.feedback.pack(pady=5)
+        self.next_button = tk.Button(master, text="Next Verb", command=self.next_verb, state=tk.DISABLED)
+        self.next_button.pack(pady=5)
 
-        self.button_next = tk.Button(root, text="Next", command=self.next_verb, state=tk.DISABLED)
-        self.button_next.pack(pady=10)
-
-        self.show_verb()
-
-    def show_verb(self):
-        if self.index < len(self.verbs):
-            verb = self.verbs[self.index]
-            self.label_verb.config(text=f"Verb: {verb.verb}")
-            self.entry_partizip.delete(0, tk.END)
-            self.entry_meaning.delete(0, tk.END)
-            self.feedback.config(text="")
-            self.button_submit.config(state=tk.NORMAL)
-            self.button_next.config(state=tk.DISABLED)
-        else:
-            messagebox.showinfo("Quiz Completed", "You've completed the quiz.")
-            self.root.destroy()
-
-    def check_answer(self):
-        user_partizip = self.entry_partizip.get().strip().lower()
-        user_meaning = self.entry_meaning.get().strip().lower()
-
-        verb = self.verbs[self.index]
-        correct_partizip = verb.partizip_perfekt.lower()
-        correct_meaning = verb.meaning.lower()
-
-        result = []
-
-        if user_partizip == correct_partizip:
-            result.append("✅ Correct Partizip Perfekt")
-        else:
-            result.append(f"❌ Correct Partizip Perfekt: {verb.partizip_perfekt}")
-
-        if user_meaning == correct_meaning:
-            result.append("✅ Correct Meaning")
-        else:
-            result.append(f"❌ Correct Meaning: {verb.meaning}")
-
-        self.feedback.config(text="\n".join(result))
-        self.button_submit.config(state=tk.DISABLED)
-        self.button_next.config(state=tk.NORMAL)
+        self.current_verb = None
+        self.next_verb()
 
     def next_verb(self):
-        self.index += 1
-        self.show_verb()
+        self.feedback_label.config(text="")
+        self.meaning_entry.delete(0, tk.END)
+        self.partizip_entry.delete(0, tk.END)
+        self.next_button.config(state=tk.DISABLED)
+        self.check_button.config(state=tk.NORMAL)
+
+        if not self.active_verbs:
+            self.verb_label.config(text="🎉 You've learned all verbs!")
+            self.check_button.config(state=tk.DISABLED)
+            return
+
+        self.current_verb = random.choice(self.active_verbs)
+        self.verb_label.config(text=f"Verb: {self.current_verb.infinitiv}")
+
+    def check_answer(self):
+        user_meaning = self.meaning_entry.get().strip().lower()
+        user_partizip = self.partizip_entry.get().strip().lower()
+
+        correct_meaning = self.current_verb.meaning.strip().lower()
+        correct_partizip = self.current_verb.partizip_perfekt.strip().lower()
+
+        if user_meaning == correct_meaning and user_partizip == correct_partizip:
+            self.current_verb.correct_count += 1
+            if self.current_verb.correct_count == 2:
+                self.learned_verbs.append(self.current_verb)
+                self.active_verbs.remove(self.current_verb)
+                self.feedback_label.config(text="✅ Correct (2nd time)! Learned.")
+            else:
+                self.feedback_label.config(text="✅ Correct! One more time to learn it.")
+        else:
+            self.feedback_label.config(
+                text=f"❌ Wrong!\nCorrect meaning: {self.current_verb.meaning}\nCorrect partizip: {self.current_verb.partizip_perfekt}"
+            )
+
+        self.check_button.config(state=tk.DISABLED)
+        self.next_button.config(state=tk.NORMAL)
+
+# --- Main program ---
 
 if __name__ == "__main__":
     verbs = load_verbs_from_csv(r"C:\Users\mtcc\Desktop\German\verbs.csv")
