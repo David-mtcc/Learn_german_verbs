@@ -1,6 +1,6 @@
-remaining_verbs_A1.csv
-remaining_verbs_A2.csv
-remaining_verbs_custom.csv
+*.csv
+.ico
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
