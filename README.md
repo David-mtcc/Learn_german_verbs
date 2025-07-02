@@ -40,42 +40,27 @@ A simple Tkinter-based quiz application to practice German verbs in the **infini
    cd german-verb-quiz
 2. Place your CSV verb lists and icon in the appropriate directory, or adjust paths in the code.
 
-Run the program:
+3. Run the program:
 
     ```bash
-    python verb_quiz.py
+   python verb_quiz.py
+  
 3. Select the verb list to practice and start learning!
 
-Place your CSV verb lists and icon in the appropriate directory, or adjust paths in the code.
-
-Run the program:
-
-    ´´´bash
-    python verb_quiz.py
-4. Select the verb list to practice and start learning!
-
 ### CSV Format Example
-csv
-Copy
-Edit
-infinitiv,partizip_perfekt,meaning
-gehen,gegangen,to go
-essen,gegessen,to eat
-schlafen,geschlafen,to sleep
-...
 
+    infinitiv,partizip_perfekt,meaning
+    gehen,gegangen,to go
+    essen,gegessen,to eat
+    schlafen,geschlafen,to sleep
+    
 ### How It Works
-The program loads the selected verb list CSV.
-
-It tracks which verbs have been learned by saving progress to separate CSV files.
-
-Each verb must be answered correctly twice to be considered learned.
-
-The quiz shows one verb at a time and asks for the Partizip Perfekt and English meaning.
-
-User inputs are checked and feedback is displayed.
-
-Score resets on wrong answers.
+1. The program loads the selected verb list CSV.
+2. It tracks which verbs have been learned by saving progress to separate CSV files.
+3. Each verb must be answered correctly twice to be considered learned.
+4. The quiz shows one verb at a time and asks for the Partizip Perfekt and English meaning.
+5. User inputs are checked and feedback is displayed.
+6. Score resets on wrong answers.
 
 Learned verbs can be viewed anytime.
 
