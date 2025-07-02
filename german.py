@@ -30,20 +30,35 @@ def load_learned_verbs(filepath=r"C:\Users\mtcc\Desktop\German\learned_verbs.csv
     return learned
 
 def save_learned_verbs(verbs, filepath=r"C:\Users\mtcc\Desktop\German\learned_verbs.csv"):
+    with open(filepath, mode='w', newline='', encoding='utf-8') as csvfile:
+        fieldnames = ['infinitiv', 'partizip_perfekt', 'meaning']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for verb in verbs:
+            writer.writerow({
+                'infinitiv': verb.infinitiv,
+                'partizip_perfekt': verb.partizip_perfekt,
+                'meaning': verb.meaning
+            })
+
+def save_remaining_verbs_to_csv(verbs, filepath=r"C:\Users\mtcc\Desktop\German\remaining_verbs.csv"):
+    with open(filepath, mode='w', newline='', encoding='utf-8') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(['infinitiv'])
+        for verb in verbs:
+            writer.writerow([verb.infinitiv])
+
+def load_remaining_verbs_from_csv(all_verbs, filepath=r"C:\Users\mtcc\Desktop\German\remaining_verbs.csv"):
+    if not os.path.exists(filepath):
+        return []
     try:
-        with open(filepath, mode='w', newline='', encoding='utf-8') as csvfile:
-            fieldnames = ['infinitiv', 'partizip_perfekt', 'meaning']
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writeheader()
-            for verb in verbs:
-                writer.writerow({
-                    'infinitiv': verb.infinitiv,
-                    'partizip_perfekt': verb.partizip_perfekt,
-                    'meaning': verb.meaning
-                })
-        print(f"File saved correctly at {filepath}")
+        with open(filepath, newline='', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            infinitives = [row['infinitiv'] for row in reader]
+            return [v for v in all_verbs if v.infinitiv in infinitives]
     except Exception as e:
-        print(f"Error saving file: {e}")
+        print(f"Error loading remaining verbs: {e}")
+        return []
 
 class VerbQuizApp:
     def __init__(self, master, all_verbs, learned_verbs):
@@ -51,6 +66,9 @@ class VerbQuizApp:
         self.all_verbs = all_verbs
         self.learned_verbs = learned_verbs
         self.active_verbs = [v for v in self.all_verbs if v.infinitiv not in {lv.infinitiv for lv in self.learned_verbs}]
+        self.remaining_verbs = load_remaining_verbs_from_csv(self.active_verbs)
+        if not self.remaining_verbs:
+            self.remaining_verbs = self.active_verbs.copy()
         self.score = 0
 
         self.master.title("German Verb Quiz")
@@ -83,7 +101,7 @@ class VerbQuizApp:
         self.show_learned_button = tk.Button(master, text="Show Learned Verbs", command=self.show_learned_verbs)
         self.show_learned_button.pack(pady=5)
 
-        self.reset_button = tk.Button(master, text="Reset Learned Verbs", command=self.reset_learned_verbs)
+        self.reset_button = tk.Button(master, text="Reset Progress", command=self.reset_progress)
         self.reset_button.pack(pady=5)
 
         self.current_verb = None
@@ -96,12 +114,15 @@ class VerbQuizApp:
         self.next_button.config(state=tk.DISABLED)
         self.check_button.config(state=tk.NORMAL)
 
-        if not self.active_verbs:
+        if not self.remaining_verbs:
+            self.remaining_verbs = self.active_verbs.copy()
+
+        if not self.remaining_verbs:
             self.verb_label.config(text="🎉 You've learned all verbs!")
             self.check_button.config(state=tk.DISABLED)
             return
 
-        self.current_verb = random.choice(self.active_verbs)
+        self.current_verb = random.choice(self.remaining_verbs)
         self.verb_label.config(text=f"Verb: {self.current_verb.infinitiv}")
 
     def check_answer(self):
@@ -117,6 +138,8 @@ class VerbQuizApp:
             if self.current_verb.correct_count == 2:
                 self.learned_verbs.append(self.current_verb)
                 self.active_verbs.remove(self.current_verb)
+                if self.current_verb in self.remaining_verbs:
+                    self.remaining_verbs.remove(self.current_verb)
                 save_learned_verbs(self.learned_verbs)
                 self.feedback_label.config(text="✅ Correct (2nd time)! Learned.")
             else:
@@ -125,9 +148,12 @@ class VerbQuizApp:
             self.feedback_label.config(
                 text=f"❌ Wrong!\nCorrect meaning: {self.current_verb.meaning}\nCorrect partizip: {self.current_verb.partizip_perfekt}"
             )
-            self.score = 0  # Reset score on wrong answer
+            self.score = 0
 
         self.score_label.config(text=f"Score: {self.score}")
+        if self.current_verb in self.remaining_verbs:
+            self.remaining_verbs.remove(self.current_verb)
+
         self.check_button.config(state=tk.DISABLED)
         self.next_button.config(state=tk.NORMAL)
 
@@ -135,27 +161,35 @@ class VerbQuizApp:
         if not self.learned_verbs:
             messagebox.showinfo("Learned Verbs", "No learned verbs yet.")
             return
-
         learned_text = "\n".join(f"{v.infinitiv} - {v.partizip_perfekt} - {v.meaning}" for v in self.learned_verbs)
         messagebox.showinfo("Learned Verbs", learned_text)
 
-    def reset_learned_verbs(self):
-        if messagebox.askyesno("Reset Learned Verbs", "Are you sure you want to reset the learned verbs list?"):
+    def reset_progress(self):
+        if messagebox.askyesno("Reset Progress", "Are you sure you want to reset all progress?"):
+            try:
+                os.remove(r"C:\Users\mtcc\Desktop\German\learned_verbs.csv")
+                os.remove(r"C:\Users\mtcc\Desktop\German\remaining_verbs.csv")
+            except FileNotFoundError:
+                pass  # If files don't exist, no problem
             self.learned_verbs.clear()
-            save_learned_verbs(self.learned_verbs)
             self.active_verbs = self.all_verbs.copy()
+            self.remaining_verbs = self.active_verbs.copy()
             self.score = 0
-            self.score_label.config(text=f"Score: {self.score}")
-            self.feedback_label.config(text="Learned verbs list has been reset.")
+            self.score_label.config(text="Score: 0")
+            self.feedback_label.config(text="Progress reset.")
             self.next_verb()
 
-# --- Main program ---
+    def on_close(self):
+        save_remaining_verbs_to_csv(self.remaining_verbs)
+        self.master.destroy()
 
+# --- Main program ---
 if __name__ == "__main__":
-    csv_path = r"C:\Users\mtcc\Desktop\German\verbs.csv"  # ← Update path if needed
+    csv_path = r"C:\Users\mtcc\Desktop\German\verbs.csv"
     verbs = load_verbs_from_csv(csv_path)
     learned_verbs = load_learned_verbs()
 
     root = tk.Tk()
     app = VerbQuizApp(root, verbs, learned_verbs)
+    root.protocol("WM_DELETE_WINDOW", app.on_close)
     root.mainloop()
