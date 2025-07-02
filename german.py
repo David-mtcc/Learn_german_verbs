@@ -77,7 +77,7 @@ class VerbQuizApp(tk.Frame):
 
         self.master.title("German Verb Quiz")
 
-        self.verb_label = tk.Label(self, text="", font=("Helvetica", 16))
+        self.verb_label = tk.Label(self, text="", font=("Helvetica", 20))
         self.verb_label.pack(pady=10)
 
         self.partizip_label = tk.Label(self, text="Partizip Perfekt:")
@@ -90,10 +90,10 @@ class VerbQuizApp(tk.Frame):
         self.meaning_entry = tk.Entry(self)
         self.meaning_entry.pack()
 
-        self.feedback_label = tk.Label(self, text="", font=("Helvetica", 12))
+        self.feedback_label = tk.Label(self, text="", font=("Helvetica", 16))
         self.feedback_label.pack(pady=10)
 
-        self.score_label = tk.Label(self, text="Score: 0", font=("Helvetica", 12))
+        self.score_label = tk.Label(self, text="Score: 0", font=("Helvetica", 16))
         self.score_label.pack(pady=5)
 
         self.check_button = tk.Button(self, text="Check Answer", command=self.check_answer)
@@ -194,7 +194,7 @@ class SelectionFrame(tk.Frame):
         super().__init__(master)
         self.master = master
 
-        tk.Label(self, text="Choose the verbs list to practice:", font=("Helvetica", 14)).pack(pady=20)
+        tk.Label(self, text="Choose the verbs list to practice:", font=("Helvetica", 18)).pack(pady=20)
 
         tk.Button(self, text="A1 Verbs", width=20, command=lambda: self.select("A1")).pack(pady=5)
         tk.Button(self, text="A2 Verbs", width=20, command=lambda: self.select("A2")).pack(pady=5)
@@ -230,6 +230,8 @@ def start_quiz(root, choice):
 
 if __name__ == "__main__":
     root = tk.Tk()
+    root.geometry("600x400")
+    root.iconbitmap("german_flag.ico")
     root.title("Select Verb List")
     SelectionFrame(root)
     root.mainloop()
