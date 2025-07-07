@@ -63,6 +63,3 @@ A simple Tkinter-based quiz application to practice German verbs in the **infini
 6. Score resets on wrong answers.
 
 Learned verbs can be viewed anytime.
-
-Author
-David_Mtcc
